@@ -568,19 +568,50 @@ class InternetPathSolution:
     def solve(self) -> str:
         return f"{round(self._calculate_round_trip_time(), 3)},{round(self._calculate_first_packet_arrival_time(), 3)},{round(self._calculate_first_packet_arrival_time_two_hops(), 3)},{round(self._calculate_time_http_client_receives_first_packet(), 3)},{round(self._calculate_time_to_receive_the_whole_web_page(), 3)},{round(self._calculate_time_elapses_to_receive_first_image(), 3)},{round(self._calculate_time_for_webpage_to_be_displayed(), 3)},{round(self._calculate_time_elapsed_to_display_webpage_all_tcp_connections(), 3)},{round(self._calculate_time_to_display_entire_webpage(), 3)}"
 
+####### DNS #######
+def calculate_dns_times():
+    # Define constants
+    time_per_request = int(input("time in milliseconds for one-way communication:"))  # time in milliseconds for one-way communication
+    round_trip_time = 2 * time_per_request  # time for a full round trip
+    
+    # Cache expiration times (in milliseconds)
+    cache_expiration_1 = int(input("first request: "))  # First cache expiration time in ms
+    cache_expiration_2 = int(input("second request: "))  # Second cache expiration time in ms
 
-question = int(input("Which question do you need? 1 = End-to-End, 2 = Pipelines protocol, 3 = Go-back-N, 4 = ISP, 5 = Institutional Network (hw2), 6 = Internet Path (RTT) (hw2)\n"))
+    # Step 1: Local DNS receives query from local host
+    t_local_dns_receives_query = time_per_request
+    print(f"Local DNS receives query from local host at {t_local_dns_receives_query} ms")
+    
+    # Step 2: Local DNS sends query to root server and receives response
+    t_local_dns_receives_root_response = t_local_dns_receives_query + round_trip_time
+    print(f"Local DNS receives response from root server at {t_local_dns_receives_root_response} ms")
+    
+    # Step 3: Local DNS sends query to TLD server and receives response
+    t_local_dns_receives_tld_response = t_local_dns_receives_root_response + round_trip_time
+    print(f"Local DNS receives response from TLD server at {t_local_dns_receives_tld_response} ms")
+    
+    # Step 4: Local DNS sends query to authoritative server
+    t_local_dns_sends_authoritative_request = t_local_dns_receives_tld_response
+    print(f"Local DNS sends request to authoritative server at {t_local_dns_sends_authoritative_request} ms")
+    
+    # Step 5: Local DNS receives response from authoritative server
+    t_local_dns_receives_authoritative_response = t_local_dns_sends_authoritative_request + round_trip_time
+    # print(f"Local DNS receives response from authoritative server at {t_local_dns_receives_authoritative_response} ms")
+    
+    # Step 6: Local DNS sends final response to local host
+    t_local_host_receives_response = t_local_dns_receives_authoritative_response + time_per_request
+    print(f"Local host receives response from local DNS server at {t_local_host_receives_response} ms")
+
+    
+    print(f"First cache expiration happens at {cache_expiration_1 + t_local_host_receives_response} ms")
+    print(f"Second cache expiration happens at {cache_expiration_2 + t_local_host_receives_response/4} ms")
+
+question = int(input("Which question do you need?\n 1 = End-to-End(hw1)\n 2 = ISP (hw1)\n 3 = Institutional Network (hw2)\n 4 = Internet Path (RTT) (hw2)\n 5 = DNS (hw2)\n 6 = Pipelines protocol (hw3)\n 7 = Go-back-N (hw3)\n"))
 
 if question == 1:
     end2end()
 
 elif question == 2:
-    pipelinedProtocol()
-
-elif question == 3:
-    GoBackN()
-
-elif question == 4:
     ####### ISP #######
     ''' Problem 1 Solution '''
 
@@ -659,7 +690,7 @@ elif question == 4:
     print("Solution 4:")
     print(f"- Maximum number of users for 99.99% congestion free: {n_3} <--- wrong")
 
-elif question == 5:
+elif question == 3:
     network_bandwidth = float(input("network bandwidth: ")) * 10 ** 9  # Gbps to bits
     access_link_bandwidth = int(input("access link bandwidth: ")) * 10 ** 6  # Mbps to bits
     web_object_size = int(input("web object size link bandwidth: ")) * 10 ** 3  # Kbits to bits
@@ -677,7 +708,7 @@ elif question == 5:
                                                              invalid_cache_percentage)
     print(response_time.solve())
 
-elif question == 6:
+elif question == 4:
     transmission_rate = int(input("transmission rate: ")) * 10**6  # megabits per second
     number_of_links = int(input("num of links: "))
     number_of_routers = int(input("num of routers: "))
@@ -698,3 +729,12 @@ elif question == 6:
                                          number_of_images,
                                          image_size, max_pkt_size)
     print(internet_path.solve())
+
+elif question == 5:
+   calculate_dns_times()
+
+elif question == 6:
+    pipelinedProtocol()
+
+elif question == 7:
+    GoBackN()
