@@ -53,10 +53,7 @@ def solve_internet_path():
     print(f"{rtt:.3f},{first_router_time:.3f},{second_router_time:.3f},{client_receives_first_packet:.3f},"
           f"{total_page_download_time:.3f},{first_image_arrival_time:.3f},{time_for_all_images_single_tcp:.3f},"
           f"{time_for_all_images_multi_tcp:.3f},{time_for_all_images_persistent_http:.3f}")
-
-# Run the function
-
-
+    
 def calculate_dns_times():
     # Define constants
     time_per_request = int(input("time in milliseconds for one-way communication:"))  # time in milliseconds for one-way communication

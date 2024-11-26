@@ -158,7 +158,7 @@ class SelectiveRepeat:
     ans2 = ",".join(ans2)
     print(ans1+";"+ans2)
 
-# SYNACK - 3 PART
+# SYNACK - 3 PART (CORRECT)
 def calculate_tcp_details():
     # Input: Header details in hexadecimal
     def parse_segment_input():
@@ -193,6 +193,9 @@ def calculate_tcp_details():
         """Convert hexadecimal string to decimal integer."""
         return int(hex_value, 16)
 
+    first_segment = int(input("Bytes in first segment: "))
+    second_segment = int(input("Bytes in second segment: "))
+    third_segment = int(input("Bytes in third segment: "))
 
     # Calculations
     syn_segment = get_segment_details()
@@ -202,26 +205,27 @@ def calculate_tcp_details():
     seq_number_b = hex_to_dec(syn_segment[2])
     ack_number_a = hex_to_dec(syn_segment[3])
 
+    
     source_port_a = dest_port_a  # A to B uses B's destination port
     dest_port_b = source_port_b # A's destination port is B's source port
-    seq_number_a = seq_number_b - 1  # Sequence number starts slightly less than B's SYNACK seq number
+    seq_number_a = seq_number_b - first_segment - 1  # Sequence number starts slightly less than B's SYNACK seq number
     syn_flag_a, ack_flag_a, fin_flag_a = 1, 0, 0  # SYN=1, ACK=0, FIN=0 for SYN segment
 
     part1 = f"{dest_port_b},{source_port_a},{seq_number_a},{syn_flag_a},{ack_flag_a},{fin_flag_a}"
 
     # Part 2: SYNACK Segment from B to A
     syn_flag_b, ack_flag_b, fin_flag_b = 1, 1, 0  # SYN=1, ACK=1, FIN=0 for SYNACK
-    part2 = f"{dest_port_a},{source_port_b},{2999},{seq_number_a + 1},{syn_flag_b},{ack_flag_b},{fin_flag_b}"
+    part2 = f"{dest_port_a},{source_port_b},{ack_number_a - 1},{seq_number_b - first_segment},{syn_flag_b},{ack_flag_b},{fin_flag_b}"
 
     # Part 3: First Data Segment from A to B
     syn_flag_data, ack_flag_data, fin_flag_data = 0, 1, 0  # SYN=0, ACK=1, FIN=0 for data
-    part3 = f"{dest_port_b},{source_port_a},{seq_number_a + 1},{seq_number_b},{syn_flag_data},{ack_flag_data},{fin_flag_data}"
+    part3 = f"{dest_port_b},{source_port_a},{seq_number_b - first_segment},{ack_number_a},{syn_flag_data},{ack_flag_data},{fin_flag_data}"
 
     # Combine parts
     result = f"{part1};{part2};{part3}"
     return result
 
-# TCP RTT Procedure
+# TCP Procedure for Estimating RTT (3/5)
 def tcp_rtt_estimation():
     # Collect initial values
     estimated_rtt = float(input("Enter the current estimated RTT (ms): "))  # Initial RTT
@@ -233,9 +237,15 @@ def tcp_rtt_estimation():
     transmission_times = list(map(int, input("Enter transmission times (comma-separated, ms): ").split(',')))
     ack_times = list(map(int, input("Enter ACK times (comma-separated, ms): ").split(',')))
 
-    # Calculate RTT samples
-    sample_rtts = [ack - tx for ack, tx in zip(ack_times, transmission_times)]
-    print(f"Sample RTTs: {sample_rtts}")
+    # Calculate RTT samples, excluding retransmissions
+    sample_rtts = []
+    acknowledged_segments = set()  # Track already acknowledged segments
+    for tx, ack in zip(transmission_times, ack_times):
+        if ack not in acknowledged_segments:
+            sample_rtts.append(ack - tx)
+            acknowledged_segments.add(ack)
+
+    print(f"Sample RTTs (excluding retransmissions): {sample_rtts}")
 
     # Initialize variables to store intermediate and final results
     first_rtt_estimation = None
@@ -264,12 +274,12 @@ def tcp_rtt_estimation():
 
     # Print intermediate and final results
     print(f"After 1st RTT Sample: EstimatedRTT = {first_rtt_estimation:.1f}, Deviation = {first_deviation:.1f}")
-    print(f"Final Outputs: EstimatedRTT = {final_rtt_estimation:.1f}, Deviation = {final_deviation:.1f}, TimeoutInterval = {timeout_interval:.1f}")
+    print(f"Final Outputs: EstimatedRTT = {final_rtt_estimation:.1f}, Deviation = {final_deviation:.1f}, TimeoutInterval = {timeout_interval:.1f}\n")
     
     # Return all results as a comma-separated string
-    return f"{first_rtt_estimation:.1f},{first_deviation:.1f},{final_rtt_estimation:.1f}(X),{final_deviation:.1f},{timeout_interval:.1f}(X)"
+    return f"{first_rtt_estimation:.1f},{first_deviation:.1f},{final_rtt_estimation:.1f},{final_deviation:.1f},{timeout_interval:.1f}"
 
-# Ssthresh value
+# Ssthresh value (3/5)
 def tcp_window_calculations():
     # Constants
     ssthresh = int(input("initial ssthresh: "))  # Slow Start Threshold (in MSS)
@@ -277,7 +287,7 @@ def tcp_window_calculations():
     initial_cwnd = int(input("initial cwnd: "))  # Initial cwnd size (in MSS)
 
     # Question 1: TCP window size after 39 new ACKs
-    new_acks = int(input("num of new acks: "))
+    new_acks = int(input("Q1: num of new acks: "))
     cwnd = initial_cwnd
     for _ in range(new_acks):
         cwnd = min(cwnd + 1, advertised_window)  # Increase cwnd by 1 MSS per ACK, limited by advertised window
@@ -285,7 +295,7 @@ def tcp_window_calculations():
 
     # Question 2: New ACKs needed to reach 57 MSS
     cwnd = initial_cwnd
-    new_window_size = int(input("new window size: "))
+    new_window_size = int(input("Q2: new window size: "))
     ack_count = 0
     while cwnd < new_window_size:
         cwnd += 1
@@ -293,8 +303,8 @@ def tcp_window_calculations():
     answer_2 = ack_count
 
     # Question 3: TCP window size after cwnd reaches 88 MSS and 88 ACKs are received
-    cwnd2 = int(input("new TCP window size: "))
-    advertised_window = int(input("new advertised window: "))
+    cwnd2 = int(input("Q3: new TCP window size: "))
+    advertised_window = int(input("Q3: new advertised window: "))
     for _ in range(cwnd):
         cwnd = min(cwnd + 1, advertised_window)  # Limited by advertised receiver window size
     answer_3 = cwnd
@@ -319,8 +329,66 @@ def tcp_window_calculations():
     # Returning all answers as a comma-separated string
     return f"{answer_1},{answer_2}(x),{answer_3},{answer_4},{answer_5}(x),{answer_6}(x)"
 
+#SYNACK - 4 PART (CORRECT)
+def calculate_synack():
+    # Collect known values
+    number_of_segments = int(input("How many segments did Computer A send to Computer B?: "))
 
-question = int(input("Which question?\n 1 = Selective Repeat Protocol\n 2 = Synack - 3 Parts\n 3 = TCP RTT Procedure\n 4 = Ssthresh value\n"))
+    # Gather length in bytes of each segment
+    segment_lengths = [] # stores lengths of all segments from Computer A to Computer B
+    for i in range(1, number_of_segments + 1):
+        print(f"Length of segment #{i}: ")
+        length = int(input()) # in bytes
+        segment_lengths.append(length)
+    # Gather hex value of first 12 bytes of second segment
+    hex = input("\nHEX value of first 12 bytes of the second segment (spaces in between blocks): ")
+        # Convert the hex value to a list for easier parsing
+    hex = hex.split()
+    # print(hex)
+    cpu_b_segment = int(input("\nLength of segment from Copmuter B: "))
+
+
+    '''
+    Solution 1
+    '''
+
+    # Find sequence number of the segment from Computer B
+    # The seqeuence # is the last 2 HEX groups converted to decimal
+    last_two_hex = hex[-2] + hex[-1]
+    sequence_number_1 = int(last_two_hex, 16)
+
+    # Find the acknowledgment number
+    # The acknowledgment number is the 3rd and 4th HEX groups converted to decimal + the number of bytes in the second segment
+    third_and_fourth_hex = hex[2] + hex[3]
+    ack_1 = int(third_and_fourth_hex, 16)
+    acknowledgment_number_1 = ack_1 + segment_lengths[1]
+
+    '''
+    Solution 2:
+    '''
+    # Sequence number remains the same
+    # Acknowledgement number is the initial acknowledgment number minus the # of bytes in first segment
+    acknowledgment_number_2 = ack_1 - segment_lengths[0]
+
+    '''
+    Solution 3:
+    '''
+    # Sequence number = initial sequence number + # of bytes in segment from Computer B
+    sequence_number_3 = sequence_number_1 + cpu_b_segment
+    # Acknowledgment number is the same as the first one
+    '''
+    Solution 4:
+    '''
+
+    sequence_number_4 = sequence_number_1 - 1
+
+    # Print answer in desired format
+    print("\nFormatted Answer:\n\n")
+
+    print(f"{sequence_number_1},{acknowledgment_number_1};{sequence_number_1},{acknowledgment_number_2};{acknowledgment_number_1},{sequence_number_3};{sequence_number_4},{acknowledgment_number_2}")
+
+
+question = int(input("Which question?\n 1 = Selective Repeat Protocol\n 2 = Synack - 3 Parts\n 3 = Synack - 4 Parts\n 4 = TCP Procedure for Estimating RTT\n 5 = Ssthresh value\n"))
 if question == 1:
     result = SelectiveRepeat()
     print("Result:", result)
@@ -329,7 +397,10 @@ elif question == 2:
     print(calculate_tcp_details())
 
 elif question == 3:
-    print(tcp_rtt_estimation())
+    calculate_synack()
 
 elif question == 4:
-   print(tcp_window_calculations())
+   print(tcp_rtt_estimation())
+
+elif question == 5:
+    print(tcp_window_calculations())
