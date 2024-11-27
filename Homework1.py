@@ -235,3 +235,19 @@ while calculate_probability1(N) > 0.0001:
 
 print("Solution 4:")
 print(f"- Maximum number of users for 99.99% congestion free: {n_3}")
+
+question = int(input("Which question?\n 1 = Selective Repeat Protocol\n 2 = Synack - 3 Parts\n 3 = Synack - 4 Parts\n 4 = TCP Procedure for Estimating RTT\n 5 = Ssthresh value\n"))
+if question == 1:
+    pass
+
+elif question == 2:
+    pass
+
+elif question == 3:
+    pass
+
+elif question == 4:
+    pass
+
+elif question == 5:
+    pass
