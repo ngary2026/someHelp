@@ -70,40 +70,119 @@ def calculate_effective_throughput():
 
     print(f"{round(Throughput_Rate, 1)}, {round(Throughput_Rate_B, 1)}, {round(Min_Number_Bytes, 1)}")
 
-# RETRANSMISSION (WRONG)
+# RETRANSMISSION (1/3)
 def calculate_collision_and_retransmission():
-    # Input values from the user
-    frame_size_bytes = int(input("Enter the frame size (in bytes): "))  # Size of the frame
-    propagation_delay_bit_times = int(input("Enter the propagation delay (in bit times): "))  # Propagation delay
-
+    # Get inputs from the user
+    propagation_delay = int(input("Enter the propagation delay (in bit times): "))
+    frame_size = int(input("Enter the frame size (in bytes): "))
+    
     # Constants
-    frame_size_bits = frame_size_bytes * 8  # Convert bytes to bits
+    bits_per_byte = 8
+    slot_time = propagation_delay * 2  # Slot time for backoff (round-trip propagation delay)
 
-    # Collision detection time
-    collision_detection_time = propagation_delay_bit_times  # Time when both nodes detect the collision
+    # Calculate the frame size in bit times
+    frame_size_bits = frame_size * bits_per_byte
 
-    # When A starts retransmission
-    # A will start retransmission after detecting the collision
-    retransmission_start_A = collision_detection_time + frame_size_bits + propagation_delay_bit_times
+    # Question 1: When do the nodes detect collision?
+    collision_time = propagation_delay  # Collision detected after one propagation delay
 
-    # When B starts retransmission
-    # B will detect the collision after it has transmitted its frame and the signal has propagated back
-    retransmission_start_B = collision_detection_time + frame_size_bits + propagation_delay_bit_times
+    # Question 2: When does A start retransmission if it does so first?
+    # A finishes frame transmission and waits for the first backoff slot
+    retransmission_time_a = frame_size_bits + slot_time
 
-    # Print results
-    print(f"{collision_detection_time},{retransmission_start_A},{retransmission_start_B}")
+    # Question 3: When does B start retransmission if it does so after A?
+    # B chooses maximum backoff (1023 slots for k=10) after A's retransmission
+    max_backoff_slots = 1023
+    retransmission_time_b = retransmission_time_a + (max_backoff_slots * slot_time)
 
-# ETHERNET PROBABILITY (WRONG)
+    # Output the results
+    print(f"{collision_time},{retransmission_time_a},{retransmission_time_b}")
+
+
+# ETHERNET PROBABILITY (CORRECT)
 def ethernet_probability():
-    num_nodes = int(input("Enter the num of nodes: "))
-    k = int(input("Num of nodes that sense the channel again: "))
-    p = k / num_nodes
+    # Get inputs from the user
+    num_nodes = int(input("Enter the number of nodes: "))
+    failed_attempts = int(input("Enter the number of consecutive failed attempts: "))
+    target_nodes = int(input("Enter the number of nodes to sense the channel again (x): "))
 
-    probability = comb(num_nodes, k) * (p ** k) * ((1 - p) ** (num_nodes - k))
+    # Calculate the probability of any single node sensing the channel again
+    # After `failed_attempts` consecutive failed attempts, backoff window is 2^failed_attempts.
+    backoff_window = 2 ** failed_attempts
+    p = 1 / backoff_window  # Probability of a single node sensing the channel
 
-    print(f"round{probability, 1}")
+    # Calculate the probability that exactly one node senses the channel
+    # Formula: P(exactly x) = (C(n, x) * p^x * (1-p)^(n-x))
+    # For x = 1: C(n, 1) * p^1 * (1-p)^(n-1)
+    from math import comb
+    probability = comb(num_nodes, target_nodes) * (p ** target_nodes) * ((1 - p) ** (num_nodes - target_nodes))
 
-question = int(input("Which question?\n 1 = Cyclic Redundancy\n 2 = Effective Throughput Rate\n 3 = Retransmission\n"))
+    # Round the result to 3 decimal places
+    probability_rounded = round(probability, 3)
+
+    # Print the result
+    print(f"{probability_rounded:.3f}")
+
+# IP AND MAC ADDRESS (Yea idk yet)
+def simulate_network_frames():
+    # User inputs IP and MAC tables
+    def get_network_table():
+        print("Enter the network table (Interface, IP Address, MAC Address). Type 'done' when finished:")
+        network_table = {}
+        while True:
+            entry = input("Interface, IP Address, MAC Address: ").strip()
+            if entry.lower() == "done":
+                break
+            interface, ip, mac = entry.split()
+            network_table[interface.strip()] = (ip.strip(), mac.strip())
+        return network_table
+
+    def resolve_frames(network_table, source, dest):
+        frames = []
+        
+        # Step 1: Check if ARP is needed, broadcast to resolve MAC address
+        if source[1] != dest[1]:  # If the MAC address is different
+            # ARP Request Frame (broadcast)
+            frames.append(f"0,0,{source[1]},FF-FF-FF-FF-FF-FF")
+            # ARP Reply Frame (target responds with MAC address)
+            frames.append(f"0,0,{dest[1]},{source[1]}")
+
+        # Step 2: Create data frame for IP packet transmission
+        frames.append(f"{source[0]},{dest[0]},{source[1]},{dest[1]}")
+        
+        return frames
+
+    network_table = get_network_table()
+    
+    # User input for source and destination interfaces
+    source_interface = input("Enter source interface (e.g., B): ").strip()
+    dest_interface = input("Enter destination interface (e.g., F): ").strip()
+
+    source = network_table[source_interface]
+    dest = network_table[dest_interface]
+    
+    # Step 1: Frames from source to destination (B -> F)
+    frames_from_source_to_dest = resolve_frames(network_table, source, dest)
+    
+    # Now resolve frames from destination to another interface (F -> E)
+    source_interface2 = input("Enter next source interface (e.g., F): ").strip()
+    dest_interface2 = input("Enter next destination interface (e.g., E): ").strip()
+    
+    source2 = network_table[source_interface2]
+    dest2 = network_table[dest_interface2]
+    
+    # Step 2: Frames from F to E
+    frames_from_source2_to_dest2 = resolve_frames(network_table, source2, dest2)
+    
+    # Combine all frames
+    all_frames = frames_from_source_to_dest + frames_from_source2_to_dest2
+    
+    # Print all frames in order
+    print("\nFrames received at destination interface:")
+    for frame in all_frames:
+        print(frame)
+
+question = int(input("Which question?\n 1 = Cyclic Redundancy\n 2 = Effective Throughput Rate\n 3 = Retransmission\n 4 = Ethernet Bus Probability\n 5 = IP MAC ARP Switching\n"))
 if question == 1:
     calculate_crc()
 
@@ -115,3 +194,6 @@ elif question == 3:
 
 elif question == 4:
     ethernet_probability()
+
+elif question == 5:
+    simulate_network_frames()
