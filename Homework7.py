@@ -70,34 +70,38 @@ def calculate_effective_throughput():
 
     print(f"{round(Throughput_Rate, 1)}, {round(Throughput_Rate_B, 1)}, {round(Min_Number_Bytes, 1)}")
 
-# RETRANSMISSION (1/3)
+# RETRANSMISSION (CORRECT)
 def calculate_collision_and_retransmission():
     # Get inputs from the user
     propagation_delay = int(input("Enter the propagation delay (in bit times): "))
-    frame_size = int(input("Enter the frame size (in bytes): "))
-    
-    # Constants
-    bits_per_byte = 8
-    slot_time = propagation_delay * 2  # Slot time for backoff (round-trip propagation delay)
+    frame_size = int(input("Enter the frame size (in bytes): ")) * 8
+    Ethernet_Bus = 100 * 10**6
 
-    # Calculate the frame size in bit times
-    frame_size_bits = frame_size * bits_per_byte
+    t = 0
 
-    # Question 1: When do the nodes detect collision?
-    collision_time = propagation_delay  # Collision detected after one propagation delay
+    #Works for Ethernet Bus = 100 Mbps
 
-    # Question 2: When does A start retransmission if it does so first?
-    # A finishes frame transmission and waits for the first backoff slot
-    retransmission_time_a = frame_size_bits + slot_time
+    #Part A
+    print(propagation_delay)
 
-    # Question 3: When does B start retransmission if it does so after A?
-    # B chooses maximum backoff (1023 slots for k=10) after A's retransmission
-    max_backoff_slots = 1023
-    retransmission_time_b = retransmission_time_a + (max_backoff_slots * slot_time)
+    #Part B
+    Time = t #A and B start transmitting
+    Time += propagation_delay #Detect Collision
+    Time += 48 #A and B Jam Signal
+    Time2 = Time
+    Time += propagation_delay #B's last jam signal at A, A detects idle channel
+    Time += (96) #A starts retransmission, channels needs to be idle for 96 bit times before B can retransmit. Now, if B senses signal on or before Time2 + 512 + 96, it will not retransmit
+    print(Time)
 
-    # Output the results
-    print(f"{collision_time},{retransmission_time_a},{retransmission_time_b}")
+    #Part C
+    Time += propagation_delay #A's retransmission signals reaches B
+    if Time < Time2 + 512 + 96:
+        Time += frame_size #B detects idle channel after A retransmission signal arrives at B
+        Time += 96 #B behind transmission
+        print(Time)
 
+    else:
+        print(Time) #B behind transmission
 
 # ETHERNET PROBABILITY (CORRECT)
 def ethernet_probability():
