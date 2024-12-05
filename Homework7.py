@@ -127,7 +127,7 @@ def ethernet_probability():
     # Print the result
     print(f"{probability_rounded:.3f}")
 
-# IP AND MAC ADDRESS (Yea idk yet)
+# IP AND MAC ADDRESS (Yea idk - follow the doc)
 def simulate_network_frames():
     # User inputs IP and MAC tables
     def get_network_table():

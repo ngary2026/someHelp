@@ -1,5 +1,5 @@
 
-# DIJKSTRA 
+# DIJKSTRA (CORRECT)
 def dijkstra(matrix, start_node, max_iterations, target_node):
     num_nodes = len(matrix)
     nodes = [chr(ord('a') + i) for i in range(num_nodes)]  # Node IDs (a, b, c, ...)
@@ -53,6 +53,7 @@ def dijkstra(matrix, start_node, max_iterations, target_node):
     formatted_path = ",".join(path)
     return f"{formatted_output};{formatted_path}"
 
+# DISTANCE VECTOR (CORRECT)
 def distance_vector(matrix, target_node, max_iterations):
     num_nodes = len(matrix)
     nodes = [chr(ord('a') + i) for i in range(num_nodes)]  # Node IDs (a, b, c, ...)

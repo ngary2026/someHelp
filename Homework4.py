@@ -225,109 +225,219 @@ def calculate_tcp_details():
     result = f"{part1};{part2};{part3}"
     return result
 
-# TCP Procedure for Estimating RTT (3/5)
+# TCP Procedure for Estimating RTT (3/5) -> (CORRECT NEW CODE)
 def tcp_rtt_estimation():
     # Collect initial values
-    estimated_rtt = float(input("Enter the current estimated RTT (ms): "))  # Initial RTT
-    deviation = float(input("Enter the current deviation (ms): "))  # Initial deviation
-    alpha = 0.125  # Smoothing factor for RTT
-    beta = 0.25    # Smoothing factor for deviation
+    # estimated_rtt = float(input("Enter the current estimated RTT (ms): "))  # Initial RTT
+    # deviation = float(input("Enter the current deviation (ms): "))  # Initial deviation
+    # alpha = 0.125  # Smoothing factor for RTT
+    # beta = 0.25    # Smoothing factor for deviation
 
-    # Input transmission times and ACK times
-    transmission_times = list(map(int, input("Enter transmission times (comma-separated, ms): ").split(',')))
-    ack_times = list(map(int, input("Enter ACK times (comma-separated, ms): ").split(',')))
+    # # Input transmission times and ACK times
+    # transmission_times = list(map(int, input("Enter transmission times (comma-separated, ms): ").split(',')))
+    # ack_times = list(map(int, input("Enter ACK times (comma-separated, ms): ").split(',')))
 
-    # Calculate RTT samples, excluding retransmissions
-    sample_rtts = []
-    acknowledged_segments = set()  # Track already acknowledged segments
-    for tx, ack in zip(transmission_times, ack_times):
-        if ack not in acknowledged_segments:
-            sample_rtts.append(ack - tx)
-            acknowledged_segments.add(ack)
+    # # Calculate RTT samples, excluding retransmissions
+    # sample_rtts = []
+    # acknowledged_segments = set()  # Track already acknowledged segments
+    # for tx, ack in zip(transmission_times, ack_times):
+    #     if ack not in acknowledged_segments:
+    #         sample_rtts.append(ack - tx)
+    #         acknowledged_segments.add(ack)
 
-    print(f"Sample RTTs (excluding retransmissions): {sample_rtts}")
+    # print(f"Sample RTTs (excluding retransmissions): {sample_rtts}")
 
-    # Initialize variables to store intermediate and final results
-    first_rtt_estimation = None
-    first_deviation = None
-    final_rtt_estimation = None
-    final_deviation = None
-    timeout_interval = None
+    # # Initialize variables to store intermediate and final results
+    # first_rtt_estimation = None
+    # first_deviation = None
+    # final_rtt_estimation = None
+    # final_deviation = None
+    # timeout_interval = None
 
-    # Process RTT samples
-    for i, sample_rtt in enumerate(sample_rtts):
-        if i == 0:
-            # Update after the first RTT sample
-            estimated_rtt = (1 - alpha) * estimated_rtt + alpha * sample_rtt
-            deviation = (1 - beta) * deviation + beta * abs(sample_rtt - estimated_rtt)
-            first_rtt_estimation = estimated_rtt
-            first_deviation = deviation
-        else:
-            # Update for subsequent RTT samples
-            estimated_rtt = (1 - alpha) * estimated_rtt + alpha * sample_rtt
-            deviation = (1 - beta) * deviation + beta * abs(sample_rtt - estimated_rtt)
+    # # Process RTT samples
+    # for i, sample_rtt in enumerate(sample_rtts):
+    #     if i == 0:
+    #         # Update after the first RTT sample
+    #         estimated_rtt = (1 - alpha) * estimated_rtt + alpha * sample_rtt
+    #         deviation = (1 - beta) * deviation + beta * abs(sample_rtt - estimated_rtt)
+    #         first_rtt_estimation = estimated_rtt
+    #         first_deviation = deviation
+    #     else:
+    #         # Update for subsequent RTT samples
+    #         estimated_rtt = (1 - alpha) * estimated_rtt + alpha * sample_rtt
+    #         deviation = (1 - beta) * deviation + beta * abs(sample_rtt - estimated_rtt)
 
-    # Final results after processing all RTT samples
-    final_rtt_estimation = estimated_rtt
-    final_deviation = deviation
-    timeout_interval = final_rtt_estimation + 4 * final_deviation
+    # # Final results after processing all RTT samples
+    # final_rtt_estimation = estimated_rtt
+    # final_deviation = deviation
+    # timeout_interval = final_rtt_estimation + 4 * final_deviation
 
-    # Print intermediate and final results
-    print(f"After 1st RTT Sample: EstimatedRTT = {first_rtt_estimation:.1f}, Deviation = {first_deviation:.1f}")
-    print(f"Final Outputs: EstimatedRTT = {final_rtt_estimation:.1f}, Deviation = {final_deviation:.1f}, TimeoutInterval = {timeout_interval:.1f}\n")
+    # # Print intermediate and final results
+    # print(f"After 1st RTT Sample: EstimatedRTT = {first_rtt_estimation:.1f}, Deviation = {first_deviation:.1f}")
+    # print(f"Final Outputs: EstimatedRTT = {final_rtt_estimation:.1f}, Deviation = {final_deviation:.1f}, TimeoutInterval = {timeout_interval:.1f}\n")
     
-    # Return all results as a comma-separated string
-    return f"{first_rtt_estimation:.1f},{first_deviation:.1f},{final_rtt_estimation:.1f},{final_deviation:.1f},{timeout_interval:.1f}"
+    # # Return all results as a comma-separated string
+    # return f"{first_rtt_estimation:.1f},{first_deviation:.1f},{final_rtt_estimation:.1f},{final_deviation:.1f},{timeout_interval:.1f}"
+
+    Current_RTT = int(input("Enter the current estimated RTT: "))
+    Current_DEV = int(input("Enter the current deviation: ")) 
+    TRANS_1 = int(input("transmission time #1: "))
+    TRANS_2 = int(input("transmission time #2: "))
+    TRANS_3 = int(input("transmission time #3: "))
+    TRANS_4 = int(input("transmission time #4: "))
+    TRANS_5 = int(input("transmission time #5: "))
+    ACK_1 = int(input("ACK time #1: "))
+    ACK_2 = int(input("ACK time #3: "))
+    ACK_3 = int(input("ACK time #4: "))
+    ACK_4 = int(input("ACK time #2: ")) #Repeat
+
+    RTT_1 = ACK_1 - TRANS_1 #1 seg
+    RTT_2 = ACK_2 - TRANS_3 #3 seg
+    RTT_3 = ACK_3 - TRANS_4 #4 seg
+    #2nd segment can't be used because retransmission
+
+    ERT_0 = Current_RTT
+    ERT_1 = (1-0.125)*ERT_0 + 0.125 * RTT_1
+    ERT_2 = (1-0.125)*ERT_1 + 0.125 * RTT_2
+    ERT_3 = (1-0.125)*ERT_2 + 0.125 * RTT_3
+
+    DEV_0 = Current_DEV
+    DEV_1 = (1-0.25)*DEV_0 + 0.25 * abs(RTT_1 - ERT_1)
+    DEV_2 = (1-0.25)*DEV_1 + 0.25 * abs(RTT_2 - ERT_2)
+    DEV_3 = (1-0.25)*DEV_2 + 0.25 * abs(RTT_3 - ERT_3)
+
+    # print(ERT_1 + 4 * DEV_1)
+    # print(ERT_2 + 4 * DEV_2)
+
+    #Round these up to 1 decimal place
+    print("This is answer 1:", round(ERT_1,1))#maybe #1
+    print("This is answer 2:", round(DEV_1,1))#2
+    print("This is answer 3:", round(ERT_3,1))#3
+    print("This is answer 4:", round(DEV_3,1))#4
+    print("This is answer 5:", round((ERT_3 + 4 * DEV_3),1))
 
 # Ssthresh value (3/5)
 def tcp_window_calculations():
     # Constants
-    ssthresh = int(input("initial ssthresh: "))  # Slow Start Threshold (in MSS)
+    # ssthresh = int(input("initial ssthresh: "))  # Slow Start Threshold (in MSS)
+    # advertised_window = int(input("advertised window: "))  # Receiver window size (in MSS)
+    # initial_cwnd = int(input("initial cwnd: "))  # Initial cwnd size (in MSS)
+
+    # # Question 1: TCP window size after 39 new ACKs
+    # new_acks = int(input("Q1: num of new acks: "))
+    # cwnd = initial_cwnd
+    # for _ in range(new_acks):
+    #     cwnd = min(cwnd + 1, advertised_window)  # Increase cwnd by 1 MSS per ACK, limited by advertised window
+    # answer_1 = cwnd
+
+    # # Question 2: New ACKs needed to reach 57 MSS
+    # cwnd = initial_cwnd
+    # new_window_size = int(input("Q2: new window size: "))
+    # ack_count = 0
+    # while cwnd < new_window_size:
+    #     cwnd += 1
+    #     ack_count += 1
+    # answer_2 = ack_count
+
+    # # Question 3: TCP window size after cwnd reaches 88 MSS and 88 ACKs are received
+    # cwnd2 = int(input("Q3: new TCP window size: "))
+    # advertised_window = int(input("Q3: new advertised window: "))
+    # for _ in range(cwnd):
+    #     cwnd = min(cwnd + 1, advertised_window)  # Limited by advertised receiver window size
+    # answer_3 = cwnd
+
+    # # Question 4: TCP Tahoe behavior after 4 duplicate ACKs
+    # cwnd = 88
+    # cwnd = 1  # TCP Tahoe resets cwnd to 1 MSS on duplicate ACKs
+    # answer_4 = cwnd
+
+    # # Question 5: TCP Reno behavior after 4 duplicate ACKs
+    # cwnd2 = cwnd2 // 2  # TCP Reno halves the cwnd
+    # answer_5 = cwnd2
+
+    # # Question 6: Timeout recovery to 88 MSS
+    # cwnd2 = 1  # cwnd resets to 1 MSS on timeout
+    # ack_count = 0
+    # while cwnd2 < cwnd2:
+    #     cwnd2 += 1
+    #     ack_count += 1
+    # answer_6 = ack_count
+
+    # # Returning all answers as a comma-separated string
+    # return f"{answer_1},{answer_2}(x),{answer_3},{answer_4},{answer_5}(x),{answer_6}(x)"
+
+    ssthresh = int(input("initial ssthresh: "))  # ssthresh is 52 MSS
     advertised_window = int(input("advertised window: "))  # Receiver window size (in MSS)
     initial_cwnd = int(input("initial cwnd: "))  # Initial cwnd size (in MSS)
+    #Q1
+    new_acks_in_a_row = int(input("received in a row: "))  # Number of new ACKs received in a row
+    #Q2
+    Before_TCP_window_size = int(input("before TCP window size reaches: "))
+    #Q3
+    After_TCP_window_size = int(input("after TCP window size reaches: "))
+    New_Consecutive_ACKs = int(input("new consecutive ACKs received(should be the same as above): "))
+    last_ad_window_size = int(input("last advertised window: "))
+    #Q4 & Q5 & Q6
+    Duplicate_ACKs = 4
 
-    # Question 1: TCP window size after 39 new ACKs
-    new_acks = int(input("Q1: num of new acks: "))
-    cwnd = initial_cwnd
-    for _ in range(new_acks):
-        cwnd = min(cwnd + 1, advertised_window)  # Increase cwnd by 1 MSS per ACK, limited by advertised window
-    answer_1 = cwnd
+    #Answer 1
+    congestion_window_size = initial_cwnd + new_acks_in_a_row 
+    print("\n",min(advertised_window, congestion_window_size))
 
-    # Question 2: New ACKs needed to reach 57 MSS
-    cwnd = initial_cwnd
-    new_window_size = int(input("Q2: new window size: "))
-    ack_count = 0
-    while cwnd < new_window_size:
-        cwnd += 1
-        ack_count += 1
-    answer_2 = ack_count
+    #Answer 2
+    New_ACKs_needed = ssthresh - initial_cwnd
+    n = ssthresh
+    while n < Before_TCP_window_size:
+      New_ACKs_needed += n
+      n += 1
+    print(New_ACKs_needed)
 
-    # Question 3: TCP window size after cwnd reaches 88 MSS and 88 ACKs are received
-    cwnd2 = int(input("Q3: new TCP window size: "))
-    advertised_window = int(input("Q3: new advertised window: "))
-    for _ in range(cwnd):
-        cwnd = min(cwnd + 1, advertised_window)  # Limited by advertised receiver window size
-    answer_3 = cwnd
+    #Answer 3
+    congestion_window_size = After_TCP_window_size
+    n = New_Consecutive_ACKs
+    while n > 0:
+      if (n // congestion_window_size > 0):
+        congestion_window_size += 1
+        n = n - congestion_window_size
+    placeholder = min(advertised_window, congestion_window_size)
+    print(min(placeholder, last_ad_window_size))
 
-    # Question 4: TCP Tahoe behavior after 4 duplicate ACKs
-    cwnd = 88
-    cwnd = 1  # TCP Tahoe resets cwnd to 1 MSS on duplicate ACKs
-    answer_4 = cwnd
+    #Answer 4 - Tahoe
+    Extra_ACKs = Duplicate_ACKs
+    if not Extra_ACKs < 3:
+      congestion_window_size = 0
+    else:
+      congestion_window_size = initial_cwnd + Duplicate_ACKs
+    while not Extra_ACKs < Duplicate_ACKs:
+      Extra_ACKs = Duplicate_ACKs - 3
+      congestion_window_size += 1
+    print(min(congestion_window_size, advertised_window))
 
-    # Question 5: TCP Reno behavior after 4 duplicate ACKs
-    cwnd2 = cwnd2 // 2  # TCP Reno halves the cwnd
-    answer_5 = cwnd2
+    #Answer 5 - Reno
+    Extra_ACKs = Duplicate_ACKs
+    Change_ssthresh = After_TCP_window_size
+    if not Extra_ACKs < 3:
+      Change_ssthresh = Change_ssthresh // 2
+      congestion_window_size = Change_ssthresh + 3
+    else:
+      congestion_window_size = initial_cwnd + Duplicate_ACKs
+    while not Extra_ACKs < Duplicate_ACKs:
+      Extra_ACKs = Duplicate_ACKs - 3
+      congestion_window_size += 1
+    print(min(congestion_window_size, advertised_window))
 
-    # Question 6: Timeout recovery to 88 MSS
-    cwnd2 = 1  # cwnd resets to 1 MSS on timeout
-    ack_count = 0
-    while cwnd2 < cwnd2:
-        cwnd2 += 1
-        ack_count += 1
-    answer_6 = ack_count
+    #Answer 6
+    congestion_window_size = 1
+    Change_ssthresh = After_TCP_window_size // 2
+    New_ACKs_needed = Change_ssthresh - congestion_window_size
+    n = New_ACKs_needed + 1
+    if (After_TCP_window_size > advertised_window):
+      After_TCP_window_size = advertised_window
+    while n < After_TCP_window_size:
+      New_ACKs_needed += n
+      n += 1
+    print(New_ACKs_needed)
 
-    # Returning all answers as a comma-separated string
-    return f"{answer_1},{answer_2}(x),{answer_3},{answer_4},{answer_5}(x),{answer_6}(x)"
 
 #SYNACK - 4 PART (CORRECT)
 def calculate_synack():
